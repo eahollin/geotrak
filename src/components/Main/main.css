@@ -1,0 +1,6 @@
+ /* body and html styles */
+body {
+  margin: 10px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}

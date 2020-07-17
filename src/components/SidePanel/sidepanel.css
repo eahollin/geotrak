@@ -1,0 +1,31 @@
+ /* Sidebar card styles */
+#sidebar-card.customStyle {
+  min-width: 100px;
+  max-width: 100%;
+  min-height: 200px;
+  border-style: outset;
+  border-width: 1px;
+}
+#sidebar-card .title {
+  font-size: 24px;
+}
+#sidebar-card .pos {
+  margin-bottom: 12px;
+}
+
+/* ScrollPanel styles */
+.scroll-panel .p-scrollpanel-wrapper {
+  border-right: 9px solid #f4f4f4;
+  width: 100%;
+  min-height: 300px;
+}
+
+.scroll-panel .p-scrollpanel-bar {
+  background-color: #1976d2;
+  opacity: 1;
+  transition: background-color .3s;
+}
+
+.scroll-panel .p-scrollpanel-bar:hover {
+  background-color: #135ba1;
+}

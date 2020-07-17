@@ -1,0 +1,13 @@
+.mapStyle {
+  text-align: center;
+  min-height: 200px;
+  width: 100%;
+  align-items: center;
+  align-self: center;
+}
+
+.leaflet-container {
+  align-self: center;
+  width: 100%;
+  height: 100vh;
+}

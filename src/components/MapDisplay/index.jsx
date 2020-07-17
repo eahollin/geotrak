@@ -1,0 +1,134 @@
+import React, { Component } from "react";
+import L from 'leaflet';
+// postCSS import of Leaflet's CSS
+import 'leaflet/dist/leaflet.css';
+import './mapdisplay.css';
+
+class MapDisplay extends Component {
+  constructor(props) {
+    super(props);
+    
+    //props.features received from parent component
+    //props.mapCenter allows parent to control Map center
+    //props.mapRef allows parent to control Map
+    //props.mapLayers overlays to display on Map
+    this._mapNode = null;
+
+    // Initialize state
+    this.state = {
+      data: null,
+      map: null,
+      tileLayer: null,
+      zoom: 12
+    }
+
+    // store the map configuration properties in an object,
+    // we could also move this to a separate file & import it if desired.
+    this.config = {};
+    this.config.params = {
+      center: props.mapCenter,
+      zoomControl: true,
+      zoom: 12,
+      maxZoom: 19,
+      minZoom: 1,
+      scrollwheel: false,
+      legends: true,
+      infoControl: false,
+      attributionControl: true
+    };
+    this.config.tileLayer = {
+      uri: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      params: {
+        minZoom: 1,
+        attribution: '&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors'
+      }
+    };
+  }
+
+  // componentDidMount event called at component load time
+  componentDidMount() {
+    console.log("componentDidMount: Mounted MapDisplay Component");
+    
+    // create the Leaflet map object
+    if (!this.map) this.init(this._mapNode);
+  }
+
+  // Initialize the Leaflet Map
+  init(id) {
+    if (this.map) return;
+
+    console.log("mapLayers looks like this:");
+    console.log(this.props.mapLayers);
+
+    // this function creates the Leaflet map object and is called after the Map component mounts
+    this.props.mapRef.current = L.map(id, this.config.params);
+    this.map = this.props.mapRef.current;
+    L.control.scale({ position: "bottomleft"}).addTo(this.map);
+    //L.control.layers(null, this.props.mapLayers).addTo(this.map);
+    
+    // a TileLayer is used as the "basemap"
+    const tileLayer = L.tileLayer(this.config.tileLayer.uri, this.config.tileLayer.params).addTo(this.map);
+    
+    this.setState({
+      "tileLayer": tileLayer
+    });//"overlays": this.props.mapLayers
+
+    // set our state to include the tile layer
+    console.log("init: Map successfully created");
+    //console.log(map);
+  }
+
+  // code to run when the component receives new props or state
+  /*componentDidUpdate(prevProps, prevState) {
+    console.log("componentDidUpdate: Applying updates...");
+
+    // Recenter the view if we've received updated center from parent
+    if (this.map && (this.props.mapCenter !== this.map.getCenter())) {
+      this.map.flyTo(this.props.mapCenter, 12);
+    }*/
+
+    // Add any layer updates
+    /*if (this.map && this.layerControl && (this.props.mapLayers !== prevProps.mapLayers)) {
+      this.map.removeControl(this.layerControl);
+      this.layerControl = L.control.layers(null, this.props.mapLayers);
+      this.layerControl.addTo(this.map);
+    }*/
+  //}
+
+  // this destroys the Leaflet map object & related event listeners
+  componentWillUnmount() {
+    console.log("componentWillUnmount: Removing Leaflet Map...");
+    this.state.map.remove();
+  }
+
+  selectGeoId(geoId) {
+    console.log("selectGeoId: Finding the requeseted id: " + geoId);
+  
+    // fit the geographic extent of the GeoJSON layer within the map's bounds / viewport
+    //this.zoomToFeature(dataLayer);
+  }
+
+  filterFeatures(feature, layer) {
+    
+    console.log("filterFeatures: Filtering should happen here...");
+  }
+
+  render() {
+    // reload layers control
+    /*if (this.map && this.props.mapLayers) {
+      
+      this.layerControl = L.control.layers(null, this.props.mapLayers);
+      this.layerControl.addTo(this.map);
+    }
+
+    if (this.map && (this.props.mapCenter !== this.map.getCenter())) {
+      this.map.flyTo(this.props.mapCenter, 12);
+    }*/
+    
+    return (
+      <div id="map_container" className="mapStyle" ref={(node) => this._mapNode = node}/>
+    );
+  }
+}
+
+export default MapDisplay;
