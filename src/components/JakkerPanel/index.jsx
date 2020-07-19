@@ -116,7 +116,7 @@ export default class JakkerPanel extends Component {
               <ColorPicker id="color" value={this.state.color} onChange={(e) => this.setState({color: e.value})} />
             </div>
             <div className="p-row-fixed" style={{height:'20px'}}>
-              <small id="color-help">&nbsp;{this.state.color}</small>
+              <small id="color-help">#{this.state.color}</small>
             </div>
           </div>
         </div>
