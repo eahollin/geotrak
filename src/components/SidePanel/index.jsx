@@ -9,44 +9,53 @@ import Grid from '@material-ui/core/Grid';
 import './sidepanel.css';
 
 export default class SidePanel extends Component {
-  // this.props.output
+  // this.props.output - dynamically-generated output to display in text box
+  // this.props.isOpen - whether or not the SidePanel is open
   
   // componentDidMount event called at component load time
   componentDidMount() {
-    console.log("Mounted SidePanel Component");
-    console.log("Received initial output: " + this.props.output);
+    console.log("componentDidMount: Mounted SidePanel Component");
+    console.log("componentDidMount: Received initial output: " + this.props.output);
   }
 
   render() { 
-    return (
-      <>
-        <Grid item>
-          <Card id="sidebar-card" className="customStyle" variant="outlined">
-            <CardContent>
-              <Typography className="title" color="textSecondary" gutterBottom>
-                Helpful Tip!
-              </Typography>
-              <Typography variant="h6" component="h2">
-                If this is the first time you are using GeoTrak(tm), there
-                are a few things you should know!  Lorem ipsum dolor sit
-                amet, or something like that, and other things.
-              </Typography>
-            </CardContent>
-            <CardActions>
-              <Button size="small">Learn More</Button>
-            </CardActions>
-          </Card>
-        </Grid>
-        <Grid item style={{width:'100%',align:'left'}}>
-            <Typography variant="h5">Output will appear below:</Typography><br/>
-            <InputTextarea rows={15} cols={35} 
-              value={this.props.output} 
-              disabled={true} 
-              autoResize={false} 
-              style={{width: "100%"}}
-            />
-        </Grid>
-      </>
-    );
+    if (this.props.isOpen) {
+      return (
+        <>
+          <Grid item>
+            <Card id="sidebar-card" className="customStyle" variant="outlined">
+              <CardContent>
+                <Typography className="title" color="textSecondary" gutterBottom>
+                  Wecome!
+                </Typography>
+                <Typography variant="h6" component="h2">
+                  Use the Toolbar to Reset or Clear the Map display, or export the
+                  generated Trak data to GeoJSON format.  Use the form to the left of
+                  the Map to configure and execute TrakkerJakker jobs, which simulate
+                  various Trak-generating scenarios.
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button size="small">Learn More</Button>
+              </CardActions>
+            </Card>
+          </Grid>
+          <Grid item style={{width:'100%',align:'left'}}>
+              <Typography variant="h5">Output will appear below:</Typography><br/>
+              <InputTextarea rows={15} cols={35}
+                value={this.props.output}
+                disabled={true}
+                autoResize={false}
+                style={{width: "100%"}}
+              />
+          </Grid>
+        </>
+      );
+    }
+    else {
+      return(
+        <div/>
+      );
+    }
   }
 }
