@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import Typography from '@material-ui/core/Typography';
 import { Panel } from 'primereact/panel';
 import { Dropdown } from 'primereact/dropdown';
-import { ListBox } from 'primereact/listbox';
 import { InputText  } from 'primereact/inputtext';
 import { Slider } from 'primereact/slider';
 import { ColorPicker } from 'primereact/colorpicker';
@@ -114,7 +113,7 @@ export default class JakkerPanel extends Component {
           <label htmlFor="color" className="p-col-fixed" style={{width:'75px'}}>Color:</label>
           <div className="p-col">
             <div className="p-row">
-              <ColorPicker id="color" value={this.state.color} onChange={(e) => this.setState({color: "#"+e.value})} />
+              <ColorPicker id="color" value={this.state.color} onChange={(e) => this.setState({color: e.value})} />
             </div>
             <div className="p-row-fixed" style={{height:'20px'}}>
               <small id="color-help">&nbsp;{this.state.color}</small>
