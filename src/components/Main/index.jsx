@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import Grid from '@material-ui/core/Grid';
-import {Menu} from 'primereact/menu';
 import L from 'leaflet';
 import 'primeicons/primeicons.css';
 import 'primereact/resources/themes/nova-light/theme.css';
@@ -10,6 +9,7 @@ import './main.css';
 import Header from "../Header";
 import MapDisplay from "../MapDisplay";
 import SidePanel from "../SidePanel";
+import JakkerPanel from "../JakkerPanel";
 import WarningMessage from "../WarningMessage";
 import GraphQLCall from "../../GraphQLCallProvider";
 import {
@@ -17,6 +17,7 @@ import {
   SUBSCRIBE_TO_TRAKS
 } from "../../graphql_constants";
 import { client } from "../../index";
+import CONSTANTS from "../../constants";
 
 // This component establishes the layout of the UI
 export default class Main extends Component {
@@ -28,9 +29,8 @@ export default class Main extends Component {
     // Initial center of the Map
     this.origin = [39.0093852,-77.5046096];
     this.mapRef = React.createRef(); // ref to Map component
-
+    this.colorMap = {"Origin":CONSTANTS.DEFAULT_COLOR};
     this.trakData = [{"geoId":"Origin","lat":this.origin[0],"long":this.origin[1]}];
-    this.featureGroups = this.buildLayers(this.trakData);
 
     // Initialize component state
     // sidebarOpen allows propagation of toggleClick() event
@@ -45,7 +45,9 @@ export default class Main extends Component {
 
   // componentDidMount event called at component load time
   componentDidMount() {
-    console.log("Mounted Main Component");
+    console.log("componentDidMount: Mounted Main Component");
+
+    this.featureGroups = this.buildLayers(this.trakData);
     this.layerControl = L.control.layers(null, this.featureGroups);
     this.layerControl.addTo(this.mapRef.current);
     
@@ -63,21 +65,45 @@ export default class Main extends Component {
 
   // this is where we need to cancel subscriptions
   componentWillUnmount() {
-    console.log("Unsubscribing...");
+    console.log("componentWillUnmount: Unsubscribing...");
     this.subscription.unsubscribe();
   }
 
-  // handle clicking on the various Menu options
-  handleMenuClick = (event) => {
-    let action = event.item.label;
-    console.log("handleMenuClick: Clicked " + action);
+  // Callback for setting GeoEntity color
+  colorCallback(geoId, color) {
+    console.log("colorCallback: assigning color " + color + " to entity " + geoId);
 
-    // clicked "Map -> Reset"
-    if (action === "Reset") {
-      console.log("handleMenuClick: Attempting to recenter the Map...");
-      // setting this state variable triggers the map update in the child
-      this.mapRef.current.flyTo(this.origin, 12);
-    }
+    this.colorMap[geoId] = "#"+color;
+  }
+
+  // Toolbar action handlers:
+  // clicked "Reset" on the Toolbar
+  handleReset() {
+    console.log("handleReset: Recentering the Map...");
+    // setting this state variable triggers the map update in the child
+    this.mapRef.current.flyTo(this.origin, 12);
+  }
+
+  // clicked "Clear" on the Toolbar
+  handleClear() {
+    console.log("handleClear: Clearing Overlay FeatureGroups...");
+    var keys = Object.keys(this.featureGroups);
+    keys.forEach((groupName) => {
+      if (groupName !== "Origin") {
+        console.log("handleClear: Removing FeatureGroup " + groupName);
+        this.featureGroups[groupName].clearLayers();
+      }
+      else {
+        console.log("handleClear: Skipping 'Origin'!");
+      }
+    });
+
+    //TODO: Also need to update the Layers control!
+  }
+
+  // clicked "Export to JSON" on the Toolbar
+  handleExport() {
+    console.log("handleExport: Function not yet implemented");
   }
 
   // Build the FeatureGroups that will be controlled by the Layers UI control
@@ -100,7 +126,8 @@ export default class Main extends Component {
       });
       
       // Add the named FeatureGroup to the collection
-      overlays[key] = L.featureGroup(markers);//.addTo(map);
+      overlays[key] = L.featureGroup(markers);
+      //overlays[key].addTo(this.mapRef.current);
     });
 
     return overlays;
@@ -120,14 +147,12 @@ export default class Main extends Component {
     });
   };
 
+  // callback for handling GeoTrak messages as they are received via the GraphQL Subscription
   handleReceiveTrak = (obj) => {
-    /*var newData = this.state.trakData;
-    newData.push(obj);*/
-    
     // assemble the HTML for the markers' popups (Leaflet's bindPopup method doesn't accept React JSX)
     const popupContent = `<h6>${obj.geoId}</h6>
         ${obj.lat}, ${obj.long}`;
-    let marker = this.pointToLayer(null, [obj.lat,obj.long]);
+    let marker = this.pointToLayer(obj.geoId, [obj.lat,obj.long]);
     marker.bindPopup(popupContent);
     
     // Does a FeatureGroup for this geoId already exist?
@@ -135,14 +160,14 @@ export default class Main extends Component {
       let existingGroup = this.featureGroups[obj.geoId];
       existingGroup.addLayer(marker);
       if (this.mapRef.current.hasLayer(existingGroup)) {
-        console.log("Detected existing layer already added to Map");
+        console.log("handleReceiveTrak: Detected existing layer already added to Map");
       }
       else {
-        console.log("Detected existing group NOT added to Map!");
+        console.log("handleReceiveTrak: Detected existing group NOT added to Map!");
       }
     }
     else {
-      console.log("Creating a new layer for geoId=" + obj.geoId + "...");
+      console.log("handleReceiveTrak: Creating a new layer for geoId=" + obj.geoId + "...");
       this.featureGroups[obj.geoId] = L.featureGroup([marker]);
       //console.log(this.featureGroups[obj.geoId]);
       
@@ -162,10 +187,10 @@ export default class Main extends Component {
   }
 
   zoomToFeature(target) {
-    // pad fitBounds() so features aren't hidden under the Filter UI element
+    // pad fitBounds()
     var fitBoundsParams = {
-      paddingTopLeft: [200,200],
-      paddingBottomRight: [200,200]
+      paddingTopLeft: [50,50],
+      paddingBottomRight: [50,50]
     };
     // set the map's center & zoom so that it fits the geographic extent of the layer
     this.mapRef.current.fitBounds(target.getBounds(), fitBoundsParams);
@@ -179,7 +204,11 @@ export default class Main extends Component {
 
     return (
       <>
-        <Header onClickHamburger={this.toggleClick.bind(this)}/> 
+        <Header onClickHamburger={this.toggleClick.bind(this)}
+            onClickReset={this.handleReset.bind(this)}
+            onClickClear={this.handleClear.bind(this)}
+            onClickExport={this.handleExport.bind(this)}
+        />
         <Grid container
             spacing={1}
             direction="row"
@@ -191,25 +220,24 @@ export default class Main extends Component {
                 alignItems="flex-start"
                 spacing={2}
           >
-            <Grid item xs={2}>
-              <Menu model={this.menuItems} style={{width:"100%"}}/>
+            <Grid item xs={3}>
+              <JakkerPanel style={{width:"100%"}} setColor={this.colorCallback.bind(this)}/>
             </Grid>
-            <Grid item xs={7}>
+            <Grid item xs={7} style={{minWidth:"800px"}}>
               <MapDisplay 
-                  features={this.state.trakData} 
                   mapCenter={this.state.mapCenter}
                   mapRef={this.mapRef}
                   mapLayers={this.featureGroups}
               />
             </Grid>
-            <Grid item xs={3}
+            <Grid item xs={2}
                 container 
                 spacing={3}
                 direction="column"
                 justify="center"
                 alignItems="flex-end"
             >
-              <SidePanel output={this.state.trakOutput}/>
+              <SidePanel output={this.state.trakOutput} isOpen={this.state.sidebarOpen}/>
             </Grid>
           </Grid>       
         </Grid>
@@ -240,9 +268,16 @@ export default class Main extends Component {
   pointToLayer(feature, latlng) {
     // renders our points as circle markers, rather than Leaflet's default image markers
     // parameters to style the markers
+    let color;
+    if (this.colorMap[feature]) {
+      color = this.colorMap[feature];
+    }
+    else {
+      color = CONSTANTS.DEFAULT_COLOR;
+    }
     var markerParams = {
       radius: 10,
-      fillColor: 'purple',
+      fillColor: color,
       color: '#fff',
       weight: 1,
       opacity: 0.5,
@@ -251,87 +286,4 @@ export default class Main extends Component {
 
     return L.circleMarker(latlng, markerParams);
   }
-
-  menuItems = [
-    {
-       label:'Map',
-       icon:'pi pi-fw pi-file',
-       items:[
-          {
-             label:'Reset',
-             icon:'pi pi-fw pi-home',
-             command: this.handleMenuClick
-          },
-          {
-             label:'Delete',
-             icon:'pi pi-fw pi-trash'
-          },
-          {
-             separator:true
-          },
-          {
-             label:'Export',
-             icon:'pi pi-fw pi-external-link'
-          }
-       ]
-    },
-    {
-       label:'Edit',
-       icon:'pi pi-fw pi-pencil',
-       items:[
-          {
-             label:'Left',
-             icon:'pi pi-fw pi-align-left'
-          },
-          {
-             label:'Right',
-             icon:'pi pi-fw pi-align-right'
-          },
-          {
-             label:'Center',
-             icon:'pi pi-fw pi-align-center'
-          },
-          {
-             label:'Justify',
-             icon:'pi pi-fw pi-align-justify'
-          }
-       ]
-    },
-    {
-       label:'Users',
-       icon:'pi pi-fw pi-user',
-       items:[
-          {
-             label:'New',
-             icon:'pi pi-fw pi-user-plus'
-          },
-          {
-             label:'Delete',
-             icon:'pi pi-fw pi-user-minus'
-          },
-          {
-             label:'Search',
-             icon:'pi pi-fw pi-users'
-          }
-       ]
-    },
-    {
-       label:'Events',
-       icon:'pi pi-fw pi-calendar',
-       items:[
-          {
-             label:'Edit',
-             icon:'pi pi-fw pi-pencil'
-          },
-          {
-             label:'Archive',
-             icon:'pi pi-fw pi-calendar-times'
-          }
-       ]
-    },
-    {
-       label:'Quit',
-       icon:'pi pi-fw pi-power-off'
-    }
- ];
 }

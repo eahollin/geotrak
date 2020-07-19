@@ -5,6 +5,10 @@ import Grid from '@material-ui/core/Grid';
 import './header.css';
 
 export default class Header extends Component {
+  //this.props.onClickReset - handler function for "Reset" button
+  //this.props.onClickClear - handler function for "Clear" button
+  //this.props.onClickExport - handler function for "Export to GeoJSON" button
+
   // componentDidMount event called at component load time
   componentDidMount() {
     console.log("Mounted Header Component")
@@ -40,10 +44,13 @@ export default class Header extends Component {
           <Grid item xs={12}>
             <Toolbar>
               <div className="p-toolbar-group-left">
-                  <Button label="New" icon="pi pi-plus" className="p-button-secondary" style={{marginRight:'.25em'}} />
-                  <Button label="Upload" icon="pi pi-upload" className="p-button-secondary" />
+                  <Button label="Reset" icon="pi pi-home" className="p-button-secondary" style={{marginRight:'.25em'}} 
+                      onClick={this.props.onClickReset}/>
+                  <Button label="Clear" icon="pi pi-trash" className="p-button-secondary"
+                      onClick={this.props.onClickClear}/>
                   <i className="pi pi-bars p-toolbar-separator" style={{marginRight:'.25em'}} />
-                  <Button label="Save" icon="pi pi-check" className="p-button-secondary" />
+                  <Button label="Export to GeoJSON" icon="pi pi-external-link" className="p-button-secondary"
+                      onClick={this.props.onClickExport}/>
               </div>
               <div className="p-toolbar-group-right">
                   <Button icon="pi pi-search" className="p-button-secondary" style={{marginRight:'.25em'}} />
