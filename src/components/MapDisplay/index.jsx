@@ -4,19 +4,16 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './mapdisplay.css';
 
-class MapDisplay extends Component {
+export default class MapDisplay extends Component {
   constructor(props) {
     super(props);
     
-    //props.features received from parent component
     //props.mapCenter allows parent to control Map center
     //props.mapRef allows parent to control Map
-    //props.mapLayers overlays to display on Map
     this._mapNode = null;
 
     // Initialize state
     this.state = {
-      data: null,
       map: null,
       tileLayer: null,
       zoom: 12
@@ -64,36 +61,17 @@ class MapDisplay extends Component {
     this.props.mapRef.current = L.map(id, this.config.params);
     this.map = this.props.mapRef.current;
     L.control.scale({ position: "bottomleft"}).addTo(this.map);
-    //L.control.layers(null, this.props.mapLayers).addTo(this.map);
     
     // a TileLayer is used as the "basemap"
     const tileLayer = L.tileLayer(this.config.tileLayer.uri, this.config.tileLayer.params).addTo(this.map);
     
     this.setState({
       "tileLayer": tileLayer
-    });//"overlays": this.props.mapLayers
+    });
 
     // set our state to include the tile layer
     console.log("init: Map successfully created");
-    //console.log(map);
   }
-
-  // code to run when the component receives new props or state
-  /*componentDidUpdate(prevProps, prevState) {
-    console.log("componentDidUpdate: Applying updates...");
-
-    // Recenter the view if we've received updated center from parent
-    if (this.map && (this.props.mapCenter !== this.map.getCenter())) {
-      this.map.flyTo(this.props.mapCenter, 12);
-    }*/
-
-    // Add any layer updates
-    /*if (this.map && this.layerControl && (this.props.mapLayers !== prevProps.mapLayers)) {
-      this.map.removeControl(this.layerControl);
-      this.layerControl = L.control.layers(null, this.props.mapLayers);
-      this.layerControl.addTo(this.map);
-    }*/
-  //}
 
   // this destroys the Leaflet map object & related event listeners
   componentWillUnmount() {
@@ -114,21 +92,9 @@ class MapDisplay extends Component {
   }
 
   render() {
-    // reload layers control
-    /*if (this.map && this.props.mapLayers) {
-      
-      this.layerControl = L.control.layers(null, this.props.mapLayers);
-      this.layerControl.addTo(this.map);
-    }
-
-    if (this.map && (this.props.mapCenter !== this.map.getCenter())) {
-      this.map.flyTo(this.props.mapCenter, 12);
-    }*/
     
     return (
       <div id="map_container" className="mapStyle" ref={(node) => this._mapNode = node}/>
     );
   }
 }
-
-export default MapDisplay;
