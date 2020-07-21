@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import Typography from '@material-ui/core/Typography';
 import { Panel } from 'primereact/panel';
-import { ListBox } from 'primereact/listbox';
+import { Dropdown } from 'primereact/dropdown';
 import { InputText  } from 'primereact/inputtext';
 import { Slider } from 'primereact/slider';
 import { ColorPicker } from 'primereact/colorpicker';
@@ -14,12 +14,22 @@ export default class JakkerPanel extends Component {
   
   constructor(props) {
     super(props);
+
+    // load contents of listbox from passed prop
+    let selectItems = [
+      {label: 'Zombie 1', value: 'zombie1'},
+      {label: 'Zombie 2', value: 'zombie2'},
+      {label: 'Roamer', value: 'roamer'},
+      {label: 'Traveller', value: 'traveller'},
+      {label: 'Caravan', value: 'caravan'}
+    ];
     
     this.state = {
+      entitySelectItems: selectItems,
       entityId: "",
       entityName: "",
       iterCount: 0,
-      color: ""
+      color: CONSTANTS.DEFAULT_COLOR
     };
   }
   
@@ -32,6 +42,8 @@ export default class JakkerPanel extends Component {
   handleClick() {
     console.log("Submitting job:")
     console.log(this.state);
+
+    let selectItems = this.state.entitySelectItems;
 
     // construct target URL
     let targetUrl = CONSTANTS.JAKKER_URL;
@@ -46,6 +58,7 @@ export default class JakkerPanel extends Component {
     }
     else if (this.state.entityName) {
       targetUrl = targetUrl + "geoId=" + this.state.entityName;
+      selectItems.push({label: this.state.entityName, value: this.state.entityName});
       if (this.state.color) {
         this.props.setColor(this.state.entityName, this.state.color);
       }
@@ -58,51 +71,52 @@ export default class JakkerPanel extends Component {
     }
     console.log("handleClick: target URL (with params) is " + targetUrl);
     
+    // invoke the TrakkerJakker REST endpoint
     fetch(targetUrl)
         .then(res => console.log(res.ok()))
         .catch(console.log);
+
+    // reset state variables
+    this.setState({
+      entitySelectItems: selectItems,
+      entityId: "",
+      entityName: "",
+      iterCount: 0,
+      color: CONSTANTS.DEFAULT_COLOR
+    });
   }
   
   render() {
-    // load contents of listbox from passed prop
-    this.entitySelectItems = [
-      {label: 'Zombie 1', value: 'Z1'},
-      {label: 'Zombie 2', value: 'Z2'},
-      {label: 'Roamer', value: 'RM'},
-      {label: 'Traveller', value: 'TV'},
-      {label: 'Caravan', value: 'CV'}
-    ];
-
     return (
-      <Panel header="TrakkerJakker Form" style={{width:'100%',align:'left'}}>
+      <Panel header="TrakkerJakker Form" style={{width:'100%',align:'left'}} toggleable={true} collapsed={this.state.panelCollapsed} onToggle={(e) => this.setState({panelCollapsed: e.value})}>
         <Typography variant="h5">Configure a TrakkerJakker job using the form below.  Press 'Submit' to execute.</Typography><br/>
         <div className="p-field p-fluid">
           <label htmlFor="entityId">Select GeoEntity:</label>
-          <ListBox id="entityId" value={this.state.entityId} options={this.entitySelectItems} onChange={(e) => this.setState({entityId: e.value})} />
+          <Dropdown optionLabel="label" optionValue="value" dataKey="value" value={this.state.entityId} options={this.state.entitySelectItems} onChange={(e) => {this.setState({entityId: e.value})}} placeholder="Select a GeoEntity"/>
+        </div>
+        <div className="p-field p-fluid">
+          <label htmlFor="entityName">...or Create a New One:</label>
+          <InputText id="entityName" value={this.state.entityName} onChange={(e) => this.setState({entityName: e.target.value})} />
+        </div>
+        <div className="p-field p-fluid">
+          <div className="p-grid">
+            <div className="p-col">
+              <label htmlFor="iterCount">Number of Iterations:</label>
+            </div>
+            <div className="p-col-fixed" style={{width:'20px'}}>
+              <small id="iterCount-help">{this.state.iterCount}</small>
+            </div>
+          </div>
+          <Slider id="iterCount" value={this.state.iterCount} onChange={(e) => this.setState({iterCount: e.value})} />
         </div>
         <div className="p-field p-grid">
-          <label htmlFor="entityName" className="p-col-fixed" style={{width:'150px'}}>...or Create New:</label>
-          <div className="p-col">
-            <InputText id="entityName" value={this.state.entityName} onChange={(e) => this.setState({entityName: e.target.value})} />
-          </div>
-        </div>
-        <div className="p-field p-grid vertical-center">
-          <label htmlFor="iterCount" className="p-col-fixed" style={{width:'150px'}}>Iterations:</label>
-          <div className="p-col">
-            <Slider id="iterCount" value={this.state.iterCount} onChange={(e) => this.setState({iterCount: e.value})} />
-          </div>
-          <div className="p-col-fixed" style={{width:'20px'}}>
-            <small id="iterCount-help">{this.state.iterCount}</small>
-          </div>
-        </div>
-        <div className="p-field p-grid">
-          <label htmlFor="color" className="p-col-fixed" style={{width:'150px'}}>Color:</label>
+          <label htmlFor="color" className="p-col-fixed" style={{width:'75px'}}>Color:</label>
           <div className="p-col">
             <div className="p-row">
               <ColorPicker id="color" value={this.state.color} onChange={(e) => this.setState({color: e.value})} />
             </div>
             <div className="p-row-fixed" style={{height:'20px'}}>
-              <small id="color-help">&nbsp;{this.state.color}</small>
+              <small id="color-help">#{this.state.color}</small>
             </div>
           </div>
         </div>
