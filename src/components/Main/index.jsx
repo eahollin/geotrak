@@ -73,7 +73,7 @@ export default class Main extends Component {
   colorCallback(geoId, color) {
     console.log("colorCallback: assigning color " + color + " to entity " + geoId);
 
-    this.colorMap[geoId] = "#"+color;
+    this.colorMap[geoId] = color;
   }
 
   // Toolbar action handlers:
