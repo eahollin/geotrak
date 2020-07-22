@@ -103,7 +103,13 @@ export default class Main extends Component {
 
   // clicked "Export to JSON" on the Toolbar
   handleExport() {
-    console.log("handleExport: Function not yet implemented");
+    console.log("handleExport: Generating GeoJSON");
+    let geojson = [];
+    var keys = Object.keys(this.featureGroups);
+    keys.forEach((groupName) => {
+      geojson.push(this.featureGroups[groupName].toGeoJSON());
+    });
+    alert(JSON.stringify(geojson));
   }
 
   // Build the FeatureGroups that will be controlled by the Layers UI control
