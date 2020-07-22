@@ -283,7 +283,7 @@ export default class Main extends Component {
     }
     var markerParams = {
       radius: 10,
-      fillColor: color,
+      fillColor: "#"+color,
       color: '#fff',
       weight: 1,
       opacity: 0.5,
