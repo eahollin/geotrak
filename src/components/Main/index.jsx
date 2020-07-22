@@ -73,7 +73,7 @@ export default class Main extends Component {
   colorCallback(geoId, color) {
     console.log("colorCallback: assigning color " + color + " to entity " + geoId);
 
-    this.colorMap[geoId] = "#"+color;
+    this.colorMap[geoId] = color;
   }
 
   // Toolbar action handlers:
@@ -283,7 +283,7 @@ export default class Main extends Component {
     }
     var markerParams = {
       radius: 10,
-      fillColor: color,
+      fillColor: "#"+color,
       color: '#fff',
       weight: 1,
       opacity: 0.5,
