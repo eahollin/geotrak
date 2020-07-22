@@ -1,9 +1,10 @@
 import React, { Component } from "react";
+import {InputTextarea} from 'primereact/inputtextarea';
+import {OverlayPanel} from 'primereact/overlaypanel';
 import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
-import {InputTextarea} from 'primereact/inputtextarea';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import './sidepanel.css';
@@ -36,7 +37,7 @@ export default class SidePanel extends Component {
                 </Typography>
               </CardContent>
               <CardActions>
-                <Button size="small">Learn More</Button>
+                <Button size="small" onClick={(e) => this.op.toggle(e)} >Learn More</Button>
               </CardActions>
             </Card>
           </Grid>
@@ -49,6 +50,9 @@ export default class SidePanel extends Component {
                 style={{width: "100%"}}
               />
           </Grid>
+          <OverlayPanel ref={(el) => {this.op = el;}} showCloseIcon={true} dismissable={true}>
+            arbitrary
+          </OverlayPanel>
         </>
       );
     }
