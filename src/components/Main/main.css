@@ -3,4 +3,20 @@ body {
   margin: 10px;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   -webkit-tap-highlight-color: transparent;
+  background-color: rgb(236, 233, 205);
+}
+
+/* Sidebar card styles */
+#sidebar-card.customStyle {
+  min-width: 100px;
+  max-width: 100%;
+  min-height: 200px;
+  border-style: outset;
+  border-width: 1px;
+}
+#sidebar-card .title {
+  font-size: 24px;
+}
+#sidebar-card .pos {
+  margin-bottom: 12px;
 }

@@ -1,5 +1,16 @@
 import React, { Component } from "react";
+import { makeStyles, useTheme } from '@material-ui/core/styles';
+import clsx from 'clsx';
 import Grid from '@material-ui/core/Grid';
+import Drawer from '@material-ui/core/Drawer';
+import Hidden from '@material-ui/core/Hidden';
+import AppBar from '@material-ui/core/AppBar';
+import Card from '@material-ui/core/Card';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
+import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
+import {Dialog} from 'primereact/dialog';
 import L from 'leaflet';
 import 'primeicons/primeicons.css';
 import 'primereact/resources/themes/nova-light/theme.css';
@@ -18,6 +29,144 @@ import {
 } from "../../graphql_constants";
 import { client } from "../../index";
 import CONSTANTS from "../../constants";
+
+const drawerWidth = 300;
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    display: 'flex',
+  },
+  appBar: {
+    zIndex: theme.zIndex.drawer + 1,
+    transition: theme.transitions.create(['margin', 'width'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
+  },
+  drawer: {
+    width: drawerWidth,
+    flexShrink: 0
+  },
+  drawerPaper: {
+    width: drawerWidth,
+    backgroundColor: "#EBE9CD"
+  },
+  drawerContainer: {
+    overflow: 'auto',
+  },
+  drawerHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: theme.spacing(0, 1),
+    // necessary for content to be below app bar
+    ...theme.mixins.toolbar,
+    justifyContent: 'flex-start',
+  },
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+    transition: theme.transitions.create('margin', {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
+    marginRight: -drawerWidth,
+    marginTop: 30
+  },
+  contentShift: {
+    transition: theme.transitions.create('margin', {
+      easing: theme.transitions.easing.easeOut,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+    marginRight: 0,
+  },
+}));
+
+function Wrapper(props) {
+  const classes = useStyles();
+  return (
+    <div className={classes.root}>
+      <AppBar
+        position="fixed"
+        className={classes.appBar}
+        style={{"backgroundColor": "#EBE9CD"}}
+      >
+        <Header onClickHamburger={props.onClickHamburger}
+              onClickReset={props.onClickReset}
+              onClickClear={props.onClickClear}
+              onClickExport={props.onClickExport}
+        />
+      </AppBar>
+      <main
+        className={clsx(classes.content, {
+          [classes.contentShift]: props.isOpen,
+        })}
+      >
+        <div className={classes.drawerHeader} />
+        <Grid container
+            direction="row"
+            justify="left"
+            alignItems="flex-start"
+            spacing={2}
+        >
+          <Grid item xs={3} container
+              direction="column"
+              justify="top"
+              alignItems="flex-start"
+              spacing={2}
+              padding={3}>
+            <Grid item>
+              <Card id="sidebar-card" className="customStyle" variant="outlined">
+                <CardContent>
+                  <Typography className="title" color="textSecondary" gutterBottom>
+                    Wecome!
+                  </Typography>
+                  <Typography variant="h6" component="h2">
+                    Use the Toolbar to Reset or Clear the Map display, or export the
+                    generated Trak data to GeoJSON format.  Use the form to the left of
+                    the Map to configure and execute TrakkerJakker jobs, which simulate
+                    various Trak-generating scenarios.
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button size="small" onClick={props.onInfoClick} >Learn More</Button>
+                </CardActions>
+              </Card>
+            </Grid>
+            <Grid container item
+                direction="column"
+                alignItems="flex-start"
+            >
+              <JakkerPanel setColor={props.colorCallback}/>
+            </Grid>
+          </Grid>
+          <Grid item style={{minWidth:"300px"}} xs={9}>
+            <MapDisplay
+                mapCenter={props.mapCenter}
+                mapRef={props.mapRef}
+                mapLayers={props.featureGroups}
+            />
+          </Grid>
+        </Grid>
+      </main>
+      <Hidden smDown implementation="css">
+        <Drawer
+          className={classes.drawer}
+          variant="persistent"
+          anchor="right"
+          open={props.isOpen}
+          classes={{
+            paper: classes.drawerPaper,
+          }}
+        >
+          <div style={{height:"130px"}}/>
+          <div className={classes.drawerContainer}  style={{width:drawerWidth-25}}>
+            <SidePanel output={props.output}/>
+          </div>
+        </Drawer>
+      </Hidden>
+    </div>
+  );
+}
 
 // This component establishes the layout of the UI
 export default class Main extends Component {
@@ -210,51 +359,55 @@ export default class Main extends Component {
 
     return (
       <>
-        <Header onClickHamburger={this.toggleClick.bind(this)}
+        <Wrapper output={this.state.trakOutput}
+            mapCenter={this.state.mapCenter}
+            mapRef={this.mapRef}
+            featureGroups={this.featureGroups}
+            onClickHamburger={this.toggleClick.bind(this)}
             onClickReset={this.handleReset.bind(this)}
             onClickClear={this.handleClear.bind(this)}
             onClickExport={this.handleExport.bind(this)}
+            isOpen={this.state.sidebarOpen}
+            toggleClick={this.toggleClick.bind(this)}
+            colorCallback={this.colorCallback.bind(this)}
+            onInfoClick={this.handleInfoClick.bind(this)}
+            showInfo={this.state.showInfo}
         />
-        <Grid container
-            spacing={1}
-            direction="row"
-            alignItems="flex-start"
-        >
-          <Grid item xs={12} container 
-                direction="row"
-                justify="center"
-                alignItems="flex-start"
-                spacing={2}
-          >
-            <Grid item xs={3}>
-              <JakkerPanel style={{width:"100%"}} setColor={this.colorCallback.bind(this)}/>
-            </Grid>
-            <Grid item xs={7} style={{minWidth:"800px"}}>
-              <MapDisplay 
-                  mapCenter={this.state.mapCenter}
-                  mapRef={this.mapRef}
-                  mapLayers={this.featureGroups}
-              />
-            </Grid>
-            <Grid item xs={2}
-                container 
-                spacing={3}
-                direction="column"
-                justify="center"
-                alignItems="flex-end"
-            >
-              <SidePanel output={this.state.trakOutput} isOpen={this.state.sidebarOpen}/>
-            </Grid>
-          </Grid>       
-        </Grid>
-          
         <WarningMessage
             open={warningMessageOpen}
             text={warningMessageText}
             onWarningClose={this.handleWarningClose}
         />
+        <Dialog header="GeoTrak (tm) Platform" visible={this.state.showInfo} style={{width: '70vw'}} modal={true} onHide={() => this.setState({showInfo: false})}>
+          The GeoTrak (tm) platform is composed of a suite of application services focused on the tracking and visualization 
+          of reported geographic position data. It is largely intended to demonstrate the ability of a Quarkus microservice 
+          to effectively scale to meet the demand of hundreds to thousands of position reports being sent in from many different 
+          IoT sources. The core components of the platform are:<br/><br/>
+          <ul>
+            <li><b>Trakker:</b> the Quarkus microservice used for capturing reported position data. It accepts GraphQL 
+                mutations and pushes received events to a Kafka event stream.</li>
+            <li><b>GeoTrak Server:</b> a Spring Boot service which listens to the Kafka event stream written to by Trakker, 
+                consumes the reported events, and serves them to client(s) via GraphQL Subscription(s). These events are 
+                delivered asynchronously by the Reactive Streams Publisher & Spring WebFlux APIs.</li>
+            <li><b>TrakkerJakker:</b> a Spring Boot application which executes parameterized simulations of IoT calls. Uses 
+                randomizers to determine number of calls per execution, and to offset geographic positions for each subsequent 
+                call. Uses the Java ApolloClient library to execute GraphQL calls against the Trakker service.</li>
+            <li><b>GeoTrak (tm):</b> React-based JavaScript UI for visualizing generated geographic position data using Leaflet. 
+                Uses JavaScript Apollo client library to establish a GraphQL Subscription to the GeoTrak Server. When position 
+                events are received, they are dynamically added to the Map and the Map is re-rendered to show the updated data. 
+                Data from each source (identified by GeoID) is rendered in its own Map layer that can be turned on or off through 
+                the UI. Allows limited map manipulation and execution of TrakkerJakker processes via simple REST calls.</li>
+          </ul>
+          A separate service is planned for management of GeoEntity objects (the simulated objects generating the position events), 
+          but this facility is currently being provided by the GeoTrak Server component.<br/><br/>
+          <Typography variant="h6" style={{horizontalAlign:"center"}}>&copy;2020 Ed Hollingsworth</Typography>
+        </Dialog>
       </>
     );
+  }
+
+  handleInfoClick() {
+    this.setState({"showInfo": true});
   }
 
   //toggle the sidebar by manipulating the state variable
