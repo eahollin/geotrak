@@ -54,9 +54,6 @@ export default class MapDisplay extends Component {
   init(id) {
     if (this.map) return;
 
-    console.log("mapLayers looks like this:");
-    console.log(this.props.mapLayers);
-
     // this function creates the Leaflet map object and is called after the Map component mounts
     this.props.mapRef.current = L.map(id, this.config.params);
     this.map = this.props.mapRef.current;

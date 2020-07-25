@@ -38,6 +38,7 @@ const useStyles = makeStyles((theme) => ({
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
+    backgroundColor: "#EBE9CD",
     transition: theme.transitions.create(['margin', 'width'], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
@@ -88,7 +89,6 @@ function Wrapper(props) {
       <AppBar
         position="fixed"
         className={classes.appBar}
-        style={{"backgroundColor": "#EBE9CD"}}
       >
         <Header onClickHamburger={props.onClickHamburger}
               onClickReset={props.onClickReset}
@@ -107,14 +107,14 @@ function Wrapper(props) {
             justify="left"
             alignItems="flex-start"
             spacing={2}
+            padding={3}
         >
-          <Grid item xs={3} container
+          <Grid item sm={3} xs={12} container
               direction="column"
               justify="top"
               alignItems="flex-start"
-              spacing={2}
-              padding={3}>
-            <Grid item>
+              spacing={2}>
+            {props.showWelcome && <Grid item>
               <Card id="sidebar-card" className="customStyle" variant="outlined">
                 <CardContent>
                   <Typography className="title" color="textSecondary" gutterBottom>
@@ -129,9 +129,10 @@ function Wrapper(props) {
                 </CardContent>
                 <CardActions>
                   <Button size="small" onClick={props.onInfoClick} >Learn More</Button>
+                  <Button size="small" onClick={props.onDismissClick} >Dismiss</Button>
                 </CardActions>
               </Card>
-            </Grid>
+            </Grid>}
             <Grid container item
                 direction="column"
                 alignItems="flex-start"
@@ -139,7 +140,7 @@ function Wrapper(props) {
               <JakkerPanel setColor={props.colorCallback}/>
             </Grid>
           </Grid>
-          <Grid item style={{minWidth:"300px"}} xs={9}>
+          <Grid item style={{minWidth:"200px"}} sm={9} xs={12}>
             <MapDisplay
                 mapCenter={props.mapCenter}
                 mapRef={props.mapRef}
@@ -187,6 +188,8 @@ export default class Main extends Component {
       mapCenter: this.origin,
       trakOutput: "",
       sidebarOpen: true,
+      showInfo: false,
+      showWelcome: true,
       warningMessageOpen: false,
       warningMessageText: ""
     }
@@ -371,7 +374,9 @@ export default class Main extends Component {
             toggleClick={this.toggleClick.bind(this)}
             colorCallback={this.colorCallback.bind(this)}
             onInfoClick={this.handleInfoClick.bind(this)}
+            onDismissClick={this.handleDismissClick.bind(this)}
             showInfo={this.state.showInfo}
+            showWelcome={this.state.showWelcome}
         />
         <WarningMessage
             open={warningMessageOpen}
@@ -408,6 +413,10 @@ export default class Main extends Component {
 
   handleInfoClick() {
     this.setState({"showInfo": true});
+  }
+
+  handleDismissClick() {
+    this.setState({"showWelcome": false});
   }
 
   //toggle the sidebar by manipulating the state variable
