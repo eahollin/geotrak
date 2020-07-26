@@ -104,14 +104,14 @@ function Wrapper(props) {
         <div className={classes.drawerHeader} />
         <Grid container
             direction="row"
-            justify="left"
+            justify="flex-start"
             alignItems="flex-start"
             spacing={2}
             padding={3}
         >
           <Grid item sm={3} xs={12} container
               direction="column"
-              justify="top"
+              justify="flex-start"
               alignItems="flex-start"
               spacing={2}>
             {props.showWelcome && <Grid item>
@@ -305,8 +305,55 @@ export default class Main extends Component {
     });
   };
 
+  // Utility function generates a Polyline connecting the elements of
+  // trakData having the specified geoId
+  generateRoute = (geoId) => {
+    // First, filter trakData
+    let filteredData = this.trakData.filter((data) => {
+      return data.geoId === geoId;
+    });
+
+    // Then, sort the filtered list
+    filteredData.sort((a, b) => {
+      return (a.lat) - (b.lat);
+    });
+
+    // Extract the (now ordered) LatLng data
+    let latlngs = [];
+    filteredData.forEach((entry) => {
+        latlngs.push({"lat":entry.lat,"lng":entry.long});
+    });
+
+    // Finaly, create the Polyline
+    let routeColor;
+    if (this.colorMap[geoId]) {
+      routeColor = this.colorMap[geoId];
+    }
+    else {
+      routeColor = CONSTANTS.DEFAULT_COLOR;
+    }
+    return L.polyline(latlngs, {color: "#"+routeColor, weight: '2', opacity: '0.5'});
+  }
+
+  // Utility function replaces the route layer (Polyline) of a FeatureGroup
+  // by removing the old one and adding a new on
+  swapRouteLayer = (existingGroup, pl) => {
+    // Find and remove the old route
+    var keys = Object.keys(existingGroup._layers);
+    keys.forEach((layerName) => {
+        if (existingGroup._layers[layerName].hasOwnProperty("_bounds")) {
+          existingGroup.removeLayer(existingGroup._layers[layerName]);
+          //console.log("Old route layer removed!");
+        }
+    });
+
+    existingGroup.addLayer(pl);
+  }
+
   // callback for handling GeoTrak messages as they are received via the GraphQL Subscription
   handleReceiveTrak = (obj) => {
+    this.trakData.push(obj);
+
     // assemble the HTML for the markers' popups (Leaflet's bindPopup method doesn't accept React JSX)
     const popupContent = `<h6>${obj.geoId}</h6>
         ${obj.lat}, ${obj.long}`;
@@ -317,6 +364,11 @@ export default class Main extends Component {
     if (this.featureGroups.hasOwnProperty(obj.geoId)) {
       let existingGroup = this.featureGroups[obj.geoId];
       existingGroup.addLayer(marker);
+
+      // generate and swap out the route layer
+      let newPath = this.generateRoute(obj.geoId);
+      this.swapRouteLayer(existingGroup, newPath);
+
       if (this.mapRef.current.hasLayer(existingGroup)) {
         console.log("handleReceiveTrak: Detected existing layer already added to Map");
       }
