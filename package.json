@@ -27,7 +27,7 @@
     "react-dom": "^16.13.1",
     "react-leaflet": "^2.7.0",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "3.4.1",
+    "react-scripts": "5.0.1",
     "react-transition-group": "^4.4.1",
     "subscriptions-transport-ws": "^0.9.17"
   },
